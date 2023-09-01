@@ -1,0 +1,5 @@
+vlib work
+vlog eg4.sv +acc
+vsim work.test (test is module name)
+//add wave -r *
+run -all
