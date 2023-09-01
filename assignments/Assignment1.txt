@@ -1,0 +1,23 @@
+1) Verification Plan:
+- Check value of C = 00000 after reset = 1 
+- Apply values A = 0001 and B = 0001 and check C = 00000 without clock
+- Apply clock 
+- Apply all values of A and B from 0000 to 1111 along with ADD and SUB Op codes, check value only after clock goes high
+- Check value of C = 00000 after reset = 1 when C has some value after addition of two numbers
+- Check value of C = 00000 after applying A = 1111 and B = 0101 along with Bitwise invert op code
+- Check value of C = 00000 after applying values from 0000 to 1111 for B and A = ~B along with reduction or op code
+- Apply reset = 1
+
+2) Advantages: Testing is fast, internal bugs are tested
+   Disadvantages: Only the module is tested, individual parts are tested
+
+3) Advantages: Entire system is verified, only initial and final outputs need to be tested 
+   Disadvantages: Testing is slow, and internal bugs aren't tested
+
+4)
+a. -128 to 127
+b. 00000fxz
+c. 32768 
+d. -32768
+e. 32767
+
