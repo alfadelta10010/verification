@@ -1,0 +1,52 @@
+m255
+K4
+z2
+Z0 !s99 nomlopt
+R0
+R0
+R0
+R0
+R0
+R0
+!s11f vlog 2021.2 2021.04, Apr 14 2021
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z1 d/home/alphadelta1803/Desktop/folder/verification/class1
+T_opt
+!s110 1692166859
+V:`o;JK`<:3<XHQ[`M<]9I1
+04 4 4 work test fast 0
+=1-000ae431a4f1-64dc6acb-850e4-7562
+!s124 OEM10U1 
+o-quiet -auto_acc_if_foreign -work work
+Z2 tCvgOpt 0
+n@_opt
+OL;O;2021.2;73
+vtest
+DXx6 sv_std 3 std 0 22 9oUSJO;AeEaW`l:M@^WG92
+!s110 1692166852
+!i10b 1
+!s100 ]Vn1R6U<K1;2;GK:^`0KQ3
+I]XQjMA0eCI_U>zzb>?9>Q1
+S1
+R1
+w1692166787
+8test.sv
+Ftest.sv
+!i122 7
+L0 1 21
+VDg1SIo80bB@j0V0VzS_@n1
+OL;L;2021.2;73
+r1
+!s85 0
+31
+!s108 1692166852.000000
+!s107 test.sv|
+!s90 -reportprogress|300|test.sv|
+!i113 0
+o-L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+R2
