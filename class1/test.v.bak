@@ -1,7 +1,0 @@
-module test;
-integer a = 32'b000_1111_xxxx_zzzz;
-initial
-	begin
-		$display ("The value of a = %b", a);
-	end
-endmodule
