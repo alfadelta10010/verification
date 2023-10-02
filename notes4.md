@@ -1,4 +1,4 @@
-s# SystemVerilog Procedural Blocks
+# SystemVerilog Procedural Blocks
 - SystemVerilog has two types of procedural blocks
 	- `always` block (and it's sub-types)
 	- `initial` block
@@ -53,6 +53,7 @@ always_comb
 - The tool warns that a latch is required here, even though the designer's intent was combinational logic
 
 > When sensitivity list and designer intent are not matching, it is an incomplete sensitivty list
+
 ### Advantages of `always_comb`:
 - It is used to indicate inent to model combinational logic, and it infers sensitivity list automatically:
 ```verilog
@@ -75,7 +76,7 @@ always @(sel or inp1 or inp2)
 always @(sel)
 	out = !inp3;
 ```
-	- The above code is bad, but it won't give an error, `out` gives random values as both `always` blocks are run simultaneously
+- The above code is bad, but it won't give an error, `out` gives random values as both `always` blocks are run simultaneously
 ```verilog
 always_comb 
 	begin
@@ -231,8 +232,6 @@ module test;
 endmodule
 ```
 - Unions are useful when you frequently need to read and write a register in several different formats
-
-
 
 ## `initial` block
 - Non-synthesizable

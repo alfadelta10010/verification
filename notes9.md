@@ -142,4 +142,4 @@ end
 - When an object is created with handle `pkt3`, `obj_id = 3` as `id` increments to 3, and `pkt3.id = 3` is printed
 - When the final display statement is printed, the output is `pkt1.id = 3 pkt2.id = 3 pkt3.id = 3` 
 
-[All codes on EDA Playground](https://www.edaplayground.com/3QQs)
+[All codes on EDA Playground](https://www.edaplayground.com/x/3QQs)
