@@ -1,4 +1,4 @@
-# SystemVerilog Procedural Blocks
+s# SystemVerilog Procedural Blocks
 - SystemVerilog has two types of procedural blocks
 	- `always` block (and it's sub-types)
 	- `initial` block

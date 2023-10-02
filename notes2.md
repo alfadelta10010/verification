@@ -39,7 +39,7 @@ module test;
 		array = din2;
 	initial begin
 ```
-- **Take from slides**
+- :warning: **Take from slides**
 
 
 ## Packed array
@@ -146,7 +146,7 @@ module hw;
 
 ### Associative Arrays
 - Associative arrays allocate stoage only when used, not that we have to declare size before using (like dynamic)
-- **copy from slides**
+- :warning: **copy from slides**
 ```verilog
 module test;
 	bit [7:0] arr [int];
