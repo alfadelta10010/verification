@@ -101,6 +101,7 @@ endmodule
 - After this, going to the NBA region, values of b and a are updated with the **previously finalised** RHS values, 0 and x respectively
 - Therefore, final value of a = x, b = 0, c = 0
 - We can see the final values if we had used $monitor instead
+
 > Simulators are smarter now, if they see a $display they give it least priority internally, even though they have equal priority in the stratified event queue
 
 - In this program:
@@ -163,10 +164,11 @@ endmodule
 1. Do not make assignments using #0 delays
 - You will get a wrong output if you don't follow these <3
 
-- `a = 1; #0 a = 0;` will give 
+
 > What is the significance of a #0 delay?
->
+> #0 is a delay specifier that represents zero time delay. It is processed after all active events at the current simulation time have been processed, and its usage is generally not recommended. Like all delays, it is not synthesizable either in designs.
 
-> What is difference between strobe and delay
-> 
-
+> What is difference between strobe and display?
+> The $display statement is used to display the immediate values of variables or signals. It gets executed in the active region.
+> The $monitor statement displays the value of a variable or a signal when ever its value changes. It gets executed in the postponed region. To monitor the value of a variable throughout the simulation, we would have to write the monitor statement only once in our code. 
+> The $strobe signal displays the value of a variable or a signal at the end of the current time step i.e the postponed region.
