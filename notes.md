@@ -1,50 +1,50 @@
 # Class 3
-bit - unsigned - 1 bit - 0,1
-byte - signed - 8 bits - -128 - 127
+- bit - unsigned - 1 bit - 0,1
+- byte - signed - 8 bits - -128 - 127
 
-integer is a verilog datatype, it's called int (32 bit) in systemverilog, short int (16 bit) and long int (64 bit)
+- Integer is a verilog datatype, it's called `int` (32 bit) in systemverilog, `short int` (16 bit) and `long int` (64 bit)
 
-to use unsigned, mention unsigned
+- To use unsigned, mention unsigned
 ```systemverilog
 int unsigned i2;
 ```
 
-int = -2147483648 to 2147483647
-long int = -9223372036854775808 to 9223372036854775807
-shirtint = -32768 
+- `int` = -2147483648 to 2147483647
+- `long int` = -9223372036854775808 to 9223372036854775807
+- `shortint` = -32768 
 
 
-real data type 
+### Real data type 
 - 64 bit = real
 - 32 bit = shortreal
 
-all sv types (real bit byte int) are 2 state
-all v types (integer reg wire real time) are 4 state
-**logic** is the only 4 state data type in systemverilog
+- all sv types (real bit byte int) are 2 state
+- all v types (integer reg wire real time) are 4 state
+- **logic** is the only 4 state data type in systemverilog
 
 
-Styles of designing:
+# Styles of designing:
 - Dataflow model
 - Behavioural model
 - Structural model
 
-Dataflow model:
+## Dataflow model:
 - Used when boolean expression of the system is given
 - Consists of continuous assignment statements
 - For example:
-```systemverilog
+```verilog
 module andgate(a, b, y);
-input a, b;
-output y;
-assign y = a & b;
+	input a, b;
+	output y;
+	assign y = a & b;
 endmodule
 ```
 
-Behavioural style:
+## Behavioural style:
 - Used when the behaviour of the system (truth table) is given, but not the boolean expression and the gate level diagram
 - Consists of proceudral blocks and blocking and non-blocking assignments
 - For example;
-```systemverilog
+```verilog
 module andgate(a, b, y);
 input a, b;
 output y;
@@ -53,11 +53,11 @@ always_comb
 endmodule
 ```
 
-Structural style:
+## Structural style:
 - Used when the gate level diagram is present
 - Uses built-in primitives (and, not, xor, xnor, or, nand, nor) and user-defined primitives (UDP) (eg: FA module)
 - For example:
-```systemverilog
+```verilog
 module andgate(a, b, y);
 input a, b;
 output y;
@@ -96,7 +96,7 @@ module test;
 - This is major pain, introducing ``logic``
 - ``logic`` automatically assigns as a net or reg data type based on usage
 - A logic signal can be used anywhere a net is used:
-```sysverilog
+```verilog
 module logic_datatype(input logic rst_h);
 	logic q1, q2, q3, q4, inp;
 	initial q1 = 0; // Procedural assignment
@@ -106,12 +106,12 @@ module logic_datatype(input logic rst_h);
 endmodule
 ```
 - However, a logic variable cannot be driven by multiple structual drivers
-```sysverilog
+```verilog
 assign q1 = 0;
 initial q1 = 2;
 ```
 
-Overview of data types:
+# Overview of data types:
 - bit: 2 state unsigned, 1 bit
 - byte: 2 state signed, 8 bits
 - int: 2 state signed, 32 bits
@@ -123,7 +123,7 @@ Overview of data types:
 - logic: 4 state signed, 1 bit (?)
 
 
-Strings:
+# Strings:
 - If we want to save a name "vinay" for example
 - There's no defined verilog data type to save
 - For one letter, you need 8 bits, so for 5 letters you need 8 * 5 = 40 bits
@@ -136,7 +136,7 @@ module st;
 endmodule
 ```
 - In SystemVerilog, the string data type does the calculation for you:
-```systemverilog
+```verilog
 module st;
 	string a;
 	assign a = "vinay";
@@ -155,7 +155,7 @@ endmodule
 
 ## Random testing
 - RTG: Random TestVector generation
-- `<Insert graph: Directed Test vs Random test progress over time>
+- `<Insert graph: Directed Test vs Random test progress over time>`
 - We call it constrained random testing, as we give a constrianed set of values
 - Smiley = Feature, Ladybug = Bug, Rectangle = test
 - Random tests often cover a wider space than a directed test
