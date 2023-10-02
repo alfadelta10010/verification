@@ -5,8 +5,8 @@ In SV theres two types of array formats:
 
 ## Unpacked array
 ```verilog
-bit pes [7:0]; - Verbose declaration
-bit pes [8]; - Compact declaration
+bit pes [7:0]; // Verbose declaration
+bit pes [8];   // Compact declaration
 ```
 - `[7:0]` - Dimension
 - `pes` - name of array
@@ -20,8 +20,8 @@ bit [7:0] pes [4];
 ```verilog
 bit [7:0] b_unpack [4];
 input [31:0] din;
-din = b_unpack //compile error
-dim = {b_unpack[3], b_unpack[2], b_unpack[1], b_unpack[0]}
+din = b_unpack // gives a compile error
+din = {b_unpack[3], b_unpack[2], b_unpack[1], b_unpack[0]}
 ```
 - Using a concatination operator, we can assign a packed array to an unpacked array.
 ```verilog
@@ -31,7 +31,7 @@ module test;
 
 	logic [31:0] din1 = 
 	initial
-		{array1[0], array1[1], array1[2], array1[3],} = din1;
+		{array1[0], array1[1], array1[2], array1[3]} = din1;
 		array1 = din1;//compile time error 
 	end
 	logic din2 =
@@ -39,7 +39,7 @@ module test;
 		array = din2;
 	initial begin
 ```
-- :warning: **Take from slides**
+- :warning: **NOT IN SLIDES ONLY WTF** 
 
 
 ## Packed array
@@ -54,8 +54,9 @@ bit [3:0] [7:0] arr;
 ```
 - `[3:0]` = No. of arr elements
 - `[7:0]` = No. of bits in a single arr
+- To access individual element, we refer to a position as `arr[2][4]` = 4th element of `arr[2]` element
 
-##Verilog Multi-dimensional arrays
+### Verilog Multi-dimensional arrays
 ```verilog
 module test;
 	int arr1 [4]; //unpacked array
@@ -84,7 +85,7 @@ endmodule;
 - Very very tedious
 > Note: Using `$random` compiler directive generates random signed values, and `$urandom` generates random unsigned values
 
-## SystemVerilog Multi-dimensional arrays
+### SystemVerilog Multi-dimensional arrays
 - Initialisation at declaration
 ```verilog
 int arr[5] = '{10, 11, 12, 13, 14};
@@ -120,7 +121,10 @@ int arr [4] //compact declaration
 	- Associative arrays
 	- Queues
 - We use dynamic data types for real time applications
-- **some slide theory he skipped**
+- A dynamic array is one dimension of an unpacked array whose size can be set or changed at run-time.
+- Dynamic array is declared using an empty word subscript `[]`
+- The space for a dynamic array doesn’t exist until the array is explicitly created at run-time, space is allocated when `new[number]` is called
+
 ```verilog
 module test;
 	int d1[], d2[];
@@ -146,7 +150,9 @@ module hw;
 
 ### Associative Arrays
 - Associative arrays allocate stoage only when used, not that we have to declare size before using (like dynamic)
-- :warning: **copy from slides**
+- In associative array index expression is not restricted to integral expressions, but can be of any type.
+- An associative array implements a lookup table of the elements of its declared type.
+
 ```verilog
 module test;
 	bit [7:0] arr [int];
@@ -162,6 +168,7 @@ module test;
 	end
 endmodule
 ```
+**or**
 ```verilog
 module test;
 	bit [7:0] arr [string];
@@ -195,7 +202,15 @@ d1 = '{5, 6, 7}
 - In queue 0 represents the first and $ representing the last entries
 - A queue can be bounded or unbounded
 - Bounded queue: Queue with their number of entries limited (or) queue size specified
-- Unbounded queue: Queue with 
+- Unbounded queue: Queue with unlimited entries (or) queue size not specified
+- Declaration of queues:
+```verilog
+bit queue_1[$]; // Unbounded queue of bits
+int queue_2[$]; // Unbounded queue of int
+byte queue_3[$:255]; // Bounded queue of byte with 256 entries
+string queue_4[$]; // Unbounded queue of strings
+```
+> Note: Queues are explored in detail in [the next file](https://github.com/alfadelta10010/verification/blob/main/notes3.md)
 
 -----------------------------------------------------------------------------------
 ### Revision

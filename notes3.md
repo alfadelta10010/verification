@@ -73,7 +73,7 @@ tq = d.find_last_index with(item==12);
 - Shared with dynamic arrays
 
 # Array methods
-- there are many array methods that you can use on any unpacked array types (fixed, dynaic, queue, associative)
+- There are many array methods that you can use on any unpacked array types (fixed, dynaic, queue, associative)
 - Array reduction methods
 - Array locator methods
 - Array sorting and ordering
@@ -137,3 +137,38 @@ d.shuffle();
 ```
 > Man was in tooooooo much of a rush
 > Have a hands-on experience with arrays, need to know properly before next class
+
+## How to choose a storage type?
+- We choose based on 4 factors
+	- Flexibility
+	- Memory usage
+	- Speed
+	- Data Access
+### Flexibility
+- Use a fixed-size or dynamic array if it is accessed with consecutive positive integer indices: 0, 1, 2, 3…
+- Choose a fixed-size array if the array size is known at compile time.
+- Choose a dynamic array if the size is not known until run time.
+- Choose associative arrays for nonstandard indices such as widely separated values because of random values or addresses. Associative arrays can also be used to model content-addressable memories.
+- Queues are a good way to store values when the number of elements grows and shrinks a lot during simulation
+
+### Memory usage
+- If you want to reduce the simulation memory usage, use 2-state elements.
+- You should choose data sizes that are multiples of 32 bits to avoid wasted space. 
+- Packed arrays can also help conserve memory.
+- For arrays that hold up to a thousand elements, the type of array that you choose does not make a big difference in memory usage.
+- For arrays with a thousand to a million active elements, fixed-size and dynamic arrays are the most memory efficient.
+- Queues are slightly less efficient to access than fixed-size or dynamic arrays because of additional pointers. However, if your data set grows and shrinks often, and you store it in a dynamic memory, you will have to manually call `new[]` to allocate memory and copy.
+- Modeling memories larger than a few megabytes should be done with an associative array. Note that each element in an associative array can take several times more memory than a fixed-size or dynamic memory because of pointer overhead.
+
+### Speed
+- Choose your array type based on how many times it is accessed per clock cycle. For only a few reads and writes, you could use any type.
+- Fixed-size and dynamic arrays are stored in contiguous memory, so any element can be found in the same amount of time, regardless of array size.
+- When reading and writing associative arrays, the simulator must search for the element in memory. These require more computation than other arrays, and therefore associative arrays are the slowest.
+- Queues have almost the same access time as a fixed-size or dynamic array for reads and writes. The first and last elements can be pushed and popped with almost no overhead.
+- Inserting or removing elements in the middle requires many elements to be shifted up or down to make room. If you need to insert new elements into a large queue, your testbench may slow down.
+
+### Data Access
+- If the values are received all at once, choose a fixed-size or dynamic array so that you only have to allocate the array once.
+- If the data slowly dribbles in, choose a queue, as adding new elements to the head or tail is very efficient.
+- If you have unique and noncontiguous values, such as `‘{1, 10, 11, 50}`, you can store them in an associative array by using them as an index.
+- Using the routines `first`, `next`, and `prev`, you can search an associative array for a value and find successive values.

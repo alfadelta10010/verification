@@ -1,8 +1,8 @@
 # Class 3
-- bit - unsigned - 1 bit - 0,1
-- byte - signed - 8 bits - -128 - 127
+- `bit`		unsigned	1 bit	0,1
+- `byte`	signed		8 bits	-128 to 127
 
-- Integer is a verilog datatype, it's called `int` (32 bit) in systemverilog, `short int` (16 bit) and `long int` (64 bit)
+- `integer` is a Verilog datatype, it's called `int` (32 bit) in systemverilog, `short int` (16 bit) and `long int` (64 bit)
 
 - To use unsigned, mention unsigned
 ```verilog
@@ -11,7 +11,7 @@ int unsigned i2;
 
 - `int` = -2147483648 to 2147483647
 - `long int` = -9223372036854775808 to 9223372036854775807
-- `short int` = -32768 
+- `short int` = -32768 to 32767
 
 
 ### Real data type 
@@ -46,10 +46,10 @@ endmodule
 - For example;
 ```verilog
 module andgate(a, b, y);
-input a, b;
-output y;
-always_comb
-	y = a & b;
+	input a, b;
+	output y;
+	always_comb
+		y = a & b;
 endmodule
 ```
 
@@ -59,9 +59,9 @@ endmodule
 - For example:
 ```verilog
 module andgate(a, b, y);
-input a, b;
-output y;
-and I1 (y, a, b);
+	input a, b;
+	output y;
+	and I1 (y, a, b);
 endmodule
 ```
 - `and (a, b, y)`: Positional port mapping
@@ -80,7 +80,7 @@ module test;
 		end
 	endmodule
 ```
-- this will not work, as reg data type does not get assigned, only wire (net data types) gets assigned
+- This will not work, as reg data type does not get assigned, only wire (net data types) gets assigned
 - Lets take a look at another example:
 ```verilog
 module test;
@@ -93,34 +93,34 @@ module test;
 ```
 - This also does not work, as wire (a net datatype) cannot be used inside a procedural block
 - Designers need to mix different datatypes introducing ambiguity
-- This is major pain, introducing ``logic``
-- ``logic`` automatically assigns as a net or reg data type based on usage
+- This is major pain, introducing `logic`
+- `logic` automatically assigns as a net or reg data type based on usage
 - A logic signal can be used anywhere a net is used:
 ```verilog
 module logic_datatype(input logic rst_h);
 	logic q1, q2, q3, q4, inp;
 	initial q1 = 0; // Procedural assignment
 	assign q2 = inp; // Continuous assignment
-	not not_inst (q3, inp); // Q3 is being driven by a primitive 
+	not not_inst (q3, inp); // q3 is being driven by a primitive 
 	my_dff d1(q4, inp, clk, rst_h); // q4 is driven by a module
 endmodule
 ```
-- However, a logic variable cannot be driven by multiple structual drivers
+- However, a logic variable cannot be driven by multiple structual drivers, like follows
 ```verilog
 assign q1 = 0;
 initial q1 = 2;
 ```
 
 # Overview of data types:
-- bit: 2 state unsigned, 1 bit
-- byte: 2 state signed, 8 bits
-- int: 2 state signed, 32 bits
-- shortint: 2 state signed, 16 bits
-- longint: 2 state signed, 64 bits
-- shortreal: 2 state signed single-precision floating point, 32 bits
-- real: 2 state signed signle-precision floating point, 64 bits
-- string: array of characters to stre string
-- logic: 4 state signed, 1 bit (?)
+- `bit`: 2 state unsigned, 1 bit
+- `byte`: 2 state signed, 8 bits
+- `int`: 2 state signed, 32 bits
+- `shortint`: 2 state signed, 16 bits
+- `longint`: 2 state signed, 64 bits
+- `shortreal`: 2 state signed single-precision floating point, 32 bits
+- `real`: 2 state signed signle-precision floating point, 64 bits
+- `string`: array of characters to store string
+- `logic`: 4 state unsigned, used in place of reg
 
 
 # Strings:

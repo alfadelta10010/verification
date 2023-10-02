@@ -29,9 +29,9 @@
 	- Measure progress against the overall verification goals
 
 ## Directed Testing Approach:
-- Look at the hardware specicication and write a verification plan with a list of tests, each of which concentrated on a set of related features
+- Look at the hardware specification and write a verification plan with a list of tests, each of which concentrated on a set of related features
 - (+) Produces almost immediate results
-- (+) Given ample time and staffing, directed testing is sufficient to verify nany designs
+- (+) Given ample time and staffing, directed testing is sufficient to verify many designs
 - (-) When the design complexity doubles, it takes twice as a long to complite or requires twice as many people to implement
 - `<Insert graph: Directed test progress over time>`
 
