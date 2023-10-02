@@ -5,13 +5,13 @@
 - Integer is a verilog datatype, it's called `int` (32 bit) in systemverilog, `short int` (16 bit) and `long int` (64 bit)
 
 - To use unsigned, mention unsigned
-```systemverilog
+```verilog
 int unsigned i2;
 ```
 
 - `int` = -2147483648 to 2147483647
 - `long int` = -9223372036854775808 to 9223372036854775807
-- `shortint` = -32768 
+- `short int` = -32768 
 
 
 ### Real data type 
@@ -144,57 +144,3 @@ module st;
 		$display(a);
 endmodule
 ```
-
-# Directed and Random testing
-## Directed testing
-- Look at the hardware specicication and write a verification plan with a list of tests, each of which concentrated on a set of related features
-- (+) Produces almost immediate results
-- (+) Given ample time and staffing, directed testing is sufficient to verify nany designs
-- (-) When the design complexity doubles, it takes twice as a long to complite or requires twice as many people to implement
-- `<Insert graph: Directed test progress over time>`
-
-## Random testing
-- RTG: Random TestVector generation
-- `<Insert graph: Directed Test vs Random test progress over time>`
-- We call it constrained random testing, as we give a constrianed set of values
-- Smiley = Feature, Ladybug = Bug, Rectangle = test
-- Random tests often cover a wider space than a directed test
-- This wider coverage leads to illegal areas and overalling tests
-- Illegal areas are avoided with stronger constraints on the random test generation
-- Overlapping tests are used to find bugs that were missed earlier
-- Writing directed tests for features not covered by the random test are required
-
-## Paths to achieve complete coverage
-- Write a constrained-random test with test vectors
-- Run with many different seeds, look at the coverage
-- Check for functionalility that was not covered, and write constraints that weren't covered
-- Repeat until coverage improves and reaches 100%
-- If coverage stagnates, write directed tests for the test
-
-# Principles of Verification
-- Constrained-random stimulus:
-	- Random stimulus is crucial for exercising complex designs instead of applying directed test stimulus
-- Functional coverage
-	- When using random stimuli, we need functional coverage metric to measure verification progress
-- Layered testbench using transactors
-	- We need automated way to predict the results: A reference model or scoreboard
-	- Building the testbench infrastructure includuing self-prediction
-	- A layered testbench helps you control the complexity by breaking the problem down 
-- Common testbench for all tests
-	- We can build a testbench infrastructure that can be shared by all tests and does not have to be continually modified	
-- Test case-specific code kept separate from the test bench
-	- Code specific to a a single test must be kept separate  
-		
-# Summary [till 18/8]:
-- Different levels of testing
-	- Block level testing
-	- Integration level
-	- System level
-	- Error handling
-- Basic Testbench functionality
-- Directed v/s Constrined-Random testing
-- Basic principles of verification (5 principles)
-- Paths to achieve complete coverage
-- SystemVerilog 2 state data types
-- SystemVerilog Logic data type
-- String data type
