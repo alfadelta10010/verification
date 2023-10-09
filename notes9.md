@@ -110,7 +110,7 @@ end
 ```
 - `h1` will point to `p1`
 
-## Static class propertiess
+## Static class properties
 ```verilog
 class Packet;
 	static int id;

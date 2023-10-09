@@ -6,7 +6,7 @@
 	- Postponed Region
 
 #### Active Region:
-- Consists of:
+- Consist execution of:
 	- Blocking assignments
 	- Evaluate RHS of NBA: `y <= a + b`, evaluates a+b
 	- `$display` statements
@@ -15,13 +15,14 @@
 
 #### Inactive region
 - Time 0 (#0) assignments
+- All delay statements
 
 #### NBA region
 - Updates LHS of NBA
 - `y <= a + b`, updates y with value
 
 #### Postponed Region
-- $strobe and monitor statements
+- `$strobe` and `$monitor` statements
 - `<add stuff from notes>`
 
 ## Control flow:
@@ -44,7 +45,7 @@ endmodule
 - At simulation time 0, it will take a look at both the blocking statements
 - Both are scheduled at time 0
 - It **depends on simulator**
-> This is an impt interview question btw
+:warning: This is an impt interview question btw
 
 - What is the final value of `a`
 ```verilog
@@ -57,7 +58,7 @@ endmodule
 - Both blocking and display tasks are in active region, again, either initial block can execute first
 - The read task can be executed first, or the write task can be executed first
 - If Read task is first, the value is x, if write task is first, the value is 0
-- If it was a `$monitor` then first write task and then read task, cause monitor comes in postponed region
+- If it was a `$monitor` then first write task and then read task, cause `$monitor` comes in postponed region
 
 - Now, adding inactive region:
 - What is the final value of `a`
@@ -157,9 +158,9 @@ endmodule
 1. When modeling sequential logic, use non-blocking assignments
 1. When modeling latches, use non-blocking asignments
 1. When modeling combinational logic with an always block, use blocking assignments
-1. When modeling both sequential and combinational logic within the same `always` blovk, use non-blocking assignments
+1. When modeling both sequential and combinational logic within the same `always` block, use non-blocking assignments
 1. Do not mix blocking and non-blocking assignments in the same `always` block
-1. Do not make assignments to the same varable from more than one `always` block
+1. Do not make assignments to the same variable from more than one `always` block
 1. Use $strobe to display values that have been assigned using non-blocking assignments
 1. Do not make assignments using #0 delays
 - You will get a wrong output if you don't follow these <3

@@ -27,6 +27,7 @@ end
 - A queue is not physically limitless as computer has constraints
 - Order after push: `|65|45|55|75|`
 - Order after pop: `|45|55|`
+
 - Explaining `insert` and `delete`:
 ```verilog
 module tb;
@@ -66,11 +67,30 @@ tq = d.find_first_index with(item==12);
 // tq = {2}
 tq = d.find_last_index with(item==12);
 // tq = {7}
-
 ```
 - `item` represents a single element of the array
 - `find_index()` returns the indices of all the elements satisfying the given expression
 - Shared with dynamic arrays
+
+- Explaining `size`:
+```verilog
+module test;
+	bit [31:0] queue_1[$];
+	initial begin
+		// Queue initialisation
+		queue_1 = {0, 1, 2, 3};
+		// Size method
+		$display("Queue_1 size is %0d", queue_1.size());
+		// Push_front method
+		queue_1.push_front(22);
+		$display("Queue_1 size after push_front is %0d", queue_1.size());
+		// Push_back method
+		queue_1.push_back(44);
+		$display("Queue_1 size after push_back is %0d", queue_1.size());
+	end
+endmodule
+```
+- It returns the size of the queue, or the number of values in queue
 
 # Array methods
 - There are many array methods that you can use on any unpacked array types (fixed, dynaic, queue, associative)
@@ -93,28 +113,44 @@ w = b.xor(); //
 
 ## Array locator methods
 - Largest value, if value is there, etc
-- Array locator methods find data in an unpacked array
+- Array locator methods find data in an **unpacked array**
 ```verilog
 int f[6] = '{1,6,2,6,8,6}; //Fixed size array
 int d[] = '{2,4,6,8,10}; //Dynamic array
 int q[$] = '{1,3,5,7}; //queue
 int tq[$]; //result queue
 
-tq = q.min(); //
-tq = d.max(); //
-tq = f.unique(); //
+tq = q.min(); // {1}
+tq = d.max(); // {10}
+tq = f.unique(); // {1, 6, 2, 8}
 ```
 - In a `with` clause, the item name is called the **iterator argument** and represents a single element of the array
 ```verilog
-int d[] 
-TAKE FROM SLIDES
+int d[]  = '{9, 1, 8, 3, 4, 4}, tq[$];
+// Find all elements greater than 3
+tq = d.find with (item > 3); // {9, 8, 4, 4}
+tq = d.find_index with (item > 3); // {0, 2, 4, 5}
+tq = d.find_first with (item > 99); // {}
+tq = d.find_first_index with (item == 8); // {2} since d[2] = 8
+tq = d.find_last with (item == 4); // {4}
+tq = d.find_last_index with (item == 4); // {5} since d[5] = 4
 ```
-- Declaring the iderator argument
+- Operation:
 ```verilog
-tq = d.find_first with (item==4);
-tq = d.find_first() with (item==4);
-tq = d.find_first(item) with (item==4);
-tq = d.find_first(x) with (x==4);
+tq = d.find with (item > 3); // {9, 8, 4, 4}
+```
+- is the same as
+```verilog
+foreach (d[i])
+	if (d[i] > 3)
+		tq.push_back(d[i]);
+```
+- Declaring the iterator argument
+```verilog
+tq = d.find_first with (item == 4);
+tq = d.find_first() with (item == 4);
+tq = d.find_first(item) with (item == 4);
+tq = d.find_first(x) with (x == 4);
 ```
 - The above are all same
 - To total up a subset of value in the array
@@ -123,20 +159,23 @@ int count, total, d[] = '{9,1,8,3,4,4,};
 count = d.sum(x) with (x > 7); // 2 = 1+0+1+0+0+0
 total = d.sum(x) with ((x > 7) * x); // 17 = 9+0+8+0+0+0
 count = d.sum(x) with (x < 8); // 4 = 0+1+0+1+1+1
-total = d.sum(x) with ((x <
-**copy from slides**
+total = d.sum(x) with ((x < 8 ? x : 0)); // 12 = 0+1+0+3+4+4
+count = d.sum(x) with (x == 4); // 2 = 0+0+0+0+1+1
 ```
+- Here, the first line compares the idem with 7. This relational returns a 1 (true) or 0 (false) so the calculation is a sum of the array `{1,0,1,0,0,0}`.
+- The second multiplies the boolean result with the array element being tested. So the total is the sum of `{9,0,8,0,0,0}`, which is 17.
+- The third calculates the total of elements less than 8. 
+- The fourth total is computed using the `? :` conditional operator.
+- The last counts the numbers of 4's
+
 - Array sorting and ordering
 ```verilog
-int d[] = '{9,1,8}
-d.reverse();
-d.sort();
-d.rsort();
-d.shuffle();
-**copy from slides**
+int d[] = '{9,1,8,3,4,4};
+d.reverse();  // '{4, 4, 3, 8, 1, 9}
+d.sort();     // '{1, 3, 4, 4, 8, 9}
+d.rsort();	  // '{9, 8, 4, 4, 3, 1}
+d.shuffle();  // '{9, 4, 3, 8, 1, 4}
 ```
-> Man was in tooooooo much of a rush
-> Have a hands-on experience with arrays, need to know properly before next class
 
 ## How to choose a storage type?
 - We choose based on 4 factors

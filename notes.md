@@ -124,6 +124,10 @@ initial q1 = 2;
 
 
 # Strings:
+- Holds variable-length strings
+- An individual character is of `byte` type
+- The elements of the string of length N are numbered 0 to N-1
+- Memory is dynamically allocated
 - If we want to save a name "vinay" for example
 - There's no defined verilog data type to save
 - For one letter, you need 8 bits, so for 5 letters you need 8 * 5 = 40 bits
@@ -144,3 +148,22 @@ module st;
 		$display(a);
 endmodule
 ```
+- The function `getc(N)` returns the byte at location N
+```verilog
+string s;
+initial begin
+	s = "IEEE"
+	$display(s.getc(0)); // 73
+	$display(s.getc(1)); // 69
+	$display(s.getc(2)); // 69
+	$display(s.getc(3)); // 69
+end
+```
+
+- The function `toupper()` returns an upper-case copy of the string, and `tolower()` returns a lowercase copy
+```verilog
+$display(s.tolower());
+$display(s.toupper());
+```
+
+- The task `putc(M, C)` writes a byte c into a string at location M

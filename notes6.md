@@ -10,7 +10,7 @@ task my_task (output logic x, input logic y);
 	----------
 endtask
 ```
-- The same rules of functions apply for the arguments in the task
+- The same rules of function arguments apply for the arguments in the task
 
 ## Task with Timing control
 ```verilog
@@ -92,5 +92,6 @@ task automatic test(input [3:0] n, output [4:0] out);
 > :warning: Refer slides for code, procedure
 - Ref works both directions (inout), both as input and as output
 - Advantage: When we want to pass large sized arrays to methods, we usually use ref direction
+- `ref` direction tells not to allocate memory in stack for the variable
 - Disadvantage: Since ref is visible, a write (change) on the vale of ref will trigger the blocks waiting on it
 - To overcome this, we can set it as `const ref`, to be used for read-only operations in methods

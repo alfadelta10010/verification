@@ -144,7 +144,7 @@ endmodule // after this point, nothing remains
 module hw;
 	int ArrayFull[];
 	int ArrayEven[], ArrayOdd[];
-	-----
+	---------
 ```
 - Dynamic arrays are useful for contiguous collections of variable whose numbers change dynamically
 

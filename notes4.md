@@ -90,10 +90,10 @@ always @(sel)
 ```
 	- This gives a compiler error
 - Time-0 Initialization problem:
-**write from slides idk bro**
+	- :warning: SLIDES DON'T EXIST ONLY WTF
 	- `always_comb` executes once at time 0
 
-### Always_latch
+### `always_latch`
 - The always_latch procedural block us used ti unducate that the intent of the procedural block is to model latch-based logic
 - `always_comb` infers its sensitivity list, like `always_comb`
 
@@ -109,7 +109,12 @@ always_ff @(posedge clock, negedge reset)
 - A sensitivity list must be specified with an `always_ff` procedural block 
 - This allows the engineer to model either synchronous or asynchronous set and/or logic based on the contents of the sensitivity list
 
-
+## `initial` block
+- Non-synthesizable
+- Used in testbenches
+- Executes only once
+- Executes at run time 0
+-------------------------------------------------------------------------------------------------
 # Advanced Data structures
 ## Creating new data types with `typedef` in SystemVerilog
 > Throwback: Check FSMs in CADD, unit 4
@@ -127,12 +132,21 @@ typedef logic [OPSIZE-1:0] opreg_t;
 
 opreg_t op_a, op_b;
 ```
+
+- User-defined fixed array type
+```verilog
+typedef int fixed_array5_t [5];
+fixed_array_t f5; // = int f5[5]
+```
+
 - User-defined associative array index
 ```verilog
 typedef bit[63:0] bit64_t;
 bit64_t assoc[bit64_t], idx = 1;
 ```
+- Here, the array index type is bit64_t, and the array element type is bit64_t
 
+--------------------------------------------------------------
 Q] Create a user-defined type "nibble" of 4 bits
 ```verilog
 typedef bit[3:0] nibble;
@@ -140,6 +154,7 @@ typedef bit[3:0] nibble;
 Q] Create a real variable r and initalise is to 4.33
 Q] Create a short int variable, i_pack
 Q] Create an unpacked array k containing 4 elements of your user defined data type 
+--------------------------------------------------------------
 
 ## Structures
 - Structures allow multiple variales to be grouped together under a common name
@@ -156,6 +171,49 @@ initial
 	end
 endmodule
 ```
+- Unpacked structures
+```verilog
+typedef struct{
+	logic [7:0] sa; //MSB
+	logic [7:0] da; 
+	logic [7:0] crc;
+	logic [7:0] payload; //LSB
+} unpacked_st;
+
+module test;
+	unpacked_st pkt;
+	initial begin
+		pkt.sa = 1;
+		pkt.da = 4;
+		pkt.payload = 8'hff;
+		//pkt[7:0] = 40 - This is not possible, pkt has sub parts individual, not combined together.
+		// We should access only elements of struct, not individual fields as a whole
+	end
+endmodule
+```
+
+- Packed structures
+```verilog
+typedef struct packed {
+	logic [7:0] sa; //MSB
+	logic [7:0] da;
+	logic [7:0] crc;
+	logic [7:0] payload; //LSB
+} packed_st;
+
+module test;
+	packed_st pkt;
+	initial begin
+		pkt.sa = 1;
+		pkt.da = 4;
+		pkt.payload = 8'hff;
+		pkt[7:0] = 40 // When packed, it works
+		$display("pkt.payload = %0d", pkt.payload); //pkt.payload = 40
+		din = pkt;
+	end
+endmodule
+```
+- `| [31:24] sa | [23:16] da | [15:8] crc | [7:0] payload |`
 ## Enumerated data-type
 - Gives internal numbers to text-based operations
 ```verilog
@@ -176,48 +234,7 @@ module test;
 	end
 endmodule
 ```
-- Unpacked structures
-```verilog
-typedef struct{
-	logic [7:0] sa; //MSB
-	logic [7:0] da;
-	logic [7:0] crc;
-	logic [7:0] payload; //LSB
-} unpacked_st;
 
-module test;
-	unpacked_st pkt;
-	initial begin
-		pkt.sa = 1;
-		pkt.da = 4;
-		pkt.payload = 8'hff;
-		//pkt[7:0] = 40 - This is not possible, pkt has sub parts individual, not combined together.
-		// We shoyld access only elements of struct, not individual fields as a whole
-	end
-endmodule
-```
-
-- Packed structures
-```verilog
-typedef struct packed{
-	logic [7:0] sa; //MSB
-	logic [7:0] da;
-	logic [7:0] crc;
-	logic [7:0] payload; //LSB
-} packed_st;
-
-module test;
-	packed_st pkt;
-	initial begin
-		pkt.sa = 1;
-		pkt.da = 4;
-		pkt.payload = 8'hff;
-		pkt[7:0] = 40 // When packed, it works
-		$display("pkt.payload = %0d", pkt.payload); //pkt.payload = 40
-		din = pkt;
-	end
-endmodule
-```
 ## Union
 - A union is a data type that represents a single piece of storage that can be accessed using one of the named member data types
 - Only one of the data types in the union can be used at a time
@@ -232,9 +249,8 @@ module test;
 endmodule
 ```
 - Unions are useful when you frequently need to read and write a register in several different formats
-
-## `initial` block
-- Non-synthesizable
-- Used in testbenches
-- Executes only once
-- Executes at run time 0
+- When you use union, only the last variable can be directly accessed. 
+- Union is used when you have to use the same memory location for two or more data members. 
+- It enables you to hold data of only one data member. Its allocated space is equal to maximum size of the data member.
+- Structs allocate enough space to store all of the fields in the struct. The first one is stored at the beginning of the struct, the second is stored after that, and so on.
+- In union, the total memory space allocated is equal to the member with largest size

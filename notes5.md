@@ -51,15 +51,15 @@ endfunction
 ## Default value of arguments
 - In systemverilog you can define a default value  that is used if you leave out an argument in the call
 ```verilog
-function void checksum(input int k, input bit [31:0] low = 0, input nt high = -1);
+function void checksum(input int k, input bit [31:0] low = 0, input int high = -1);
 	bit [31:0] checksum = 0;
 endfunction
 ```
 - For calling the function:
 	- `checksum (a, 1, 30);`: low = 1, high = 30
 	- `checksum (a, 1);`    : low = 1, high = -1
-	- `checksum (a,,2);`   : low = 0, high = 2
-	- `checksum ();`        : Compile error
+	- `checksum (a,  , 2);` : low = 0, high = 2
+	- `checksum ();`        : Compile error: k has no default value
 
 ## Passing argument by name
 - We can specify a subset by specifying the name of the routine argument with a port-like syntax
@@ -73,12 +73,13 @@ initial begin
 	many(); // a = 1, b = 2, c = 3, d = 4
 	many(.c(5)); // a = 1, b = 2, c = 5, d = 3
 	many(, 6, , .d(5)); // a = 1, b = 6, c = 3, d = 5
+end
 ```
 
 ## Functions with Enum return type
 - To create functions with enum:
 ```verilog
-typedef enum {IDLE WAIT LOAD STORE} states_t;
+typedef enum {IDLE, WAIT, LOAD, STORE} states_t;
 states_t p_state, n_state;
 
 function enum {IDLE, WAIT, LOAD, STORE} states_t get_next(...);

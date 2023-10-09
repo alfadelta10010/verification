@@ -87,7 +87,7 @@ Object b1:  k = 0; => 20
 
 Object a1:	j = 0 => 30
 ```
-- Memory allocation wl not happen to the nested handle when create object for the top handle
+- Memory allocation will not happen to the nested handle when create object for the top handle
 - This is a two-step process, which becomes a maintenence issue (in case we forget)
 - To rectify this:
 ```verilog
@@ -111,7 +111,7 @@ program test;
 	end
 endprogram
 ```
-- The `function new()` automatically creates object for A when obhject for B is created
+- The `function new()` automatically creates object for A when object for B is created
 
 ### Usage of classes
 - To usage a class:
@@ -201,7 +201,7 @@ class Transaction;
 	endfunction 
 endclass
 ```
-- Starting the obhect with pre-defined values
+- Starting the object with pre-defined values
 - This custom constructor/flexible constructor gives the values at object-creation time
 - In main program:
 ```verilog
