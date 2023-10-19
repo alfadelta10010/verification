@@ -2,6 +2,12 @@
 
 ## Communication of Arbiter-Test Bench via Ports
 
+### RTL Diagram
+
+![RTL Diagram](port_communication/RTL_Diagram.png)
+
+### Files
+
 - `top.sv`
 ```verilog
 module top;
@@ -60,9 +66,80 @@ endmodule
 `include "top.sv"
 ```
 
+### Execution on EDA Playground
+
+![Test Success](port_communication/test_success2.png)
+
+-----------------------------------------------------------------------------------------------------------------------------------------------
+## Communication of Arbiter-Test Bench via Interfaces
+
 ### RTL Diagram
 
-![RTL Diagram](port_communication/RTL_Diagram.png)
+![RTL Diagram](interface_communication/RTL_Diagram.png)
+
+### Files
+
+- `top.sv`
+```verilog
+module top;
+	bit clk;
+	always #50 clk = ~clk;
+	
+	arb_if arbif(clk);
+	arb_with_ifc a1(arbif);
+	test_with_ifc t1(arbif);
+endmodule : top
+```
+
+- `test_with_ifc.sv`
+```verilog
+module test_with_ifc (arb_if arbif);
+	initial begin
+		@(posedge arbif.clk);
+		arbif.request <= 2'b01;
+		$display("@%0t: Drove req = 01", $time);
+		repeat (2) @(posedge arbif.clk);
+		if (arbif.grant == 2'b01)
+			$display("@%0t: Success: grant == 2'b01", $time);
+		else
+			$display("@%0t: Error: grant != 2'b01", $time);
+		$finish;
+	end
+endmodule
+```
+
+- `design.sv`
+```verilog
+module arb_with_ifc (arb_if arbif);
+	always @(posedge arbif.clk or posedge arbif.rst)
+		begin
+			if (arbif.rst)
+				arbif.grant <= 2'b00;
+			else if (arbif.request[0])  // High priority
+				arbif.grant <= 2'b01;
+			else if (arbif.request[1])  // Low priority
+				arbif.grant <= 2'b10;
+			else
+				arbif.grant <= '0;
+		end
+endmodule
+```
+
+- `ifc.sv`
+```verilog
+interface arb_if(input bit clk);
+	logic [1:0] grant, request;
+	bit rst;
+endinterface
+```
+
+- `testbench.sv` - On EDA Playground
+```verilog
+`include "top.sv"
+`include "design.sv"
+`include "ifc.sv"
+`include "test_with_ifc.sv"
+```
 
 ### Execution on EDA Playground
 
