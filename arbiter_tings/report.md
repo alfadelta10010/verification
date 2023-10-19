@@ -143,5 +143,5 @@ endinterface
 
 ### Execution on EDA Playground
 
-![Test Success](interface_communication/test_success2.png)
+![Test Success](interface_communication/success_test2.png)
 
