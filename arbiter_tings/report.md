@@ -60,10 +60,11 @@ endmodule
 `include "top.sv"
 ```
 
-- RTL Diagram
+### RTL Diagram
 
 ![RTL Diagram](port_communication/RTL_Diagram.png)
 
-- Execution on EDA Playground
+### Execution on EDA Playground
+
 ![Test Success](port_communication/test_success2.png)
 
