@@ -20,7 +20,12 @@ endprogram
 	- Declarations or instances of modules, interfaces, or other programs
 - When all initial procedures within a program have reached their end, that program shall immediately terminate the simulation, no need for `$finish`
 - Programs can only be instantiated in design scopes
-:warning: page 86 of `1. Chapter 4 PPTs-2.pdf`
+
+- Type and data declarations within the program are local to the program scope and have static lifetime
+- Variables declared within the scope of a program, including variables declared as ports, are called **program variables**
+- Similarly, nets decalred within scope of a program are called **program nets**
+- Program variables and nets are collectivaely termed **program signals**
+- Reference to program signals from outside any program block shall be an error.
 
 ## What does a proper test bench look like?
 - There are three files
@@ -59,21 +64,7 @@ endprogram
 ```
 - Module top generates the `clk` and connects the PB (program block) and RTL
 - `clk` is input to PB and RTL
-- Writing a test bench for this:
-```verilog
-program test();
-	input clk;
-	output [31:0] wdata;
-	output rd, wr, reset;
-	input [31:0] rdata;
-	initial begin
-		wr = 1;
-		for(int i = 0; i <= 15; i++)
-			
-			```
-:warning: Copy from `1. Chapter 4 PPTs-2.pdf`
-
-- Instantiating the program block
+- Instantiating the program block, in the top module:
 ```verilog
 module top;
 	bit clk, reset;
@@ -152,11 +143,80 @@ module rtl_memory(rdata, wdata, rd, wr, addr, clk, reset)
 		begin
 			if(rd == 1)
 				begin
-					data_out
+					data_out <= mem[addr];
+					out_enable <= 1'b1;
+				end
+			else
+				out_enable <= 1'b0;
+		end
+endmodule
 ```
-:warning: copy from slides: `1. Chapter 4 PPTs-2.pdf`
 - Synchronous WRITE and Synchronous READ (posedge clk)
-- Creating the test bench with 
+
+- Creating the test bench with program block
+```verilog
+program testbench(clk, tb_reset, tb_wr, tb_rd, tb_addr, tb_wdata, tb_rdata, response);
+	parameter reg[15:0] ADDR_WIDTH = 4;
+	parameter reg[15:0] DATA_WIDTH = 32;
+	parameter reg[15:0] MEM_SIZE = 16;
+	
+	input clk;
+	output tb_reset;
+	output tb_wr; //for write wr = 1
+	output tb_rd; //for write wr = 1
+	output [ADDR_WIDTH - 1:0] tb_addr;
+	output [DATA_WIDTH - 1:0] tb_wdata;
+	input [DATA_WIDTH - 1:0] tb_rdata;
+	input response;
+	
+	reg tb_reset;
+	reg tb_wr; //for write wr = 1
+	reg tb_rd; //for write wr = 1	
+	reg [ADDR_WIDTH - 1:0] tb_addr;
+	reg [DATA_WIDTH - 1:0] tb_wdata;
+	
+	reg [DATA_WIDTH - 1:0] ref_arr [MEM_SIZE]; //Expected Data
+	reg [DATA_WIDTH - 1:0] got_arr [MEM_SIZE]; //Actual Data
+	
+	bit [4:0] matched, mis_matched;
+	
+	initial
+		begin
+			#1
+			$display("[tb] Simulation Started at time: %0t", $time);
+			tb_reset = 0;
+			reset();
+			write();
+			repeat(2) @(posedge clk);
+			read();
+			repeat(2) @(posedge clk);
+			compare();
+			result();
+			#1 $display("[tb] Simulation Ended at time: %0t", $time);
+		end
+	
+	task reset();
+		#1
+		$display("[tb] Applying reset at time: %0t", $time);
+		tb_reset = 1;
+		#3
+		tb_reset = 0;
+		$display("[tb] DUT out of reset at time: %0t", $time);
+	endtask
+	
+	task write();
+	endtask
+	
+	task read();
+	endtask
+	
+	task compare();
+	endtask
+	
+	task result();
+	endtask
+endprogram
+```
 
 #### Creating a top module:
 ```verilog
@@ -186,5 +246,6 @@ endmodule
 - In reality, the number of ports on a system will be huge
 - What happens if we mismatch the port connections? Do we get any compile error?
 	- We don't get compile error but functionality will be affected, this debugging leads to waste of time and does not add value to the design.
+- This debugging leads to waste of time and does not add value to the design.
 - To solve this, enter `interface` block
 - Instead of using 100s of interconnects, we can group all the signals into a bus using the `interface` block
