@@ -25,13 +25,18 @@ endmodule
 	- In active region, `q1 = 0, q2 = 0, q3 = 0, d = 1, clk 5`
 	- Now, there can be two (multiple) cases:
 		- Block 2 gets executed first:
-			- 
+			- `q2 = q1` gets executed, `q2 = 0` since `q1 = 0`, even though `d = 1` **in time slot 5**
+			- `q1 = 1` since `d = 1`, however `q2 is still 0`, as expected
+			- Reading and writing has happened on the same variable `q1` at the same time in the same region
+			- Simulation output matches with hardware output
+			- No issues here
 		- Block 1 gets executed first:
 			- `q1 = d` gets executed, `q1 = 1`
 			- `q2 = q1` gets executed, AND `q2 = 1` **at time slot 5**
-			- This is an issue
-> :warning: `1. Chapter 4 PPTs-2.pdf` must be referred to complete this on 4/10/23
-- As a result, we use non-blocking assignments, as thet allow to see the old values of the flip flop inputs while sampling 
+			- Reading and writing has happened on the same variable `q1` at the same time in the same region
+			- Simulation output does **not** match the hardware output
+			- This is a major issue.
+- As a result, we use non-blocking assignments, as thet allow to see the old values of the flip flop inputs while sampling
 
 ## What is RTL?
 - RTL = Register Transfer Logic/Level
@@ -55,6 +60,7 @@ Inp───┼─►     ├──┘  └──────┘     │       �
 Clk   │                         │
 ──────┴─────────────────────────┘
 ```
+- Hence while driving the stimulus, we use `@posedge clk` since everything happens in cycle level
 
 ## Race between RTL and testbench
 - Take a look at D Flip Flop code:
@@ -102,8 +108,8 @@ endmodule
 - Let's start analysing this code
 - Starting at time 0, all `always` block are blocked, the clock one by the delay, and the FF one by the sensitivity list
 - We enter the initial block, and the starting assignments occur, and one unit delay is encountered
-- At time 1, the reset is applied as 1, which triggers the always block in the FF, and `dout` gets set as 
-`<get explanation from akshay>`
+- At time 1, the `reset` is applied as 1, which triggers the `always` block in the FF, and `dout` gets set as 0.
+- At time 3, `reset` is changed to 0, and the program waits until time 5, for the FF to update the value. 
 - Putting non-blocking in the testbench will work, but the issue is verification engineer and designer aren't the same
 - Hence, it is compulsory to use non-blocking operator while generating stimulus and driving method
 - Race between testbench and design module
@@ -117,10 +123,8 @@ endmodule
 - The race can be avoided if the **test bench events** are **scheduled seprately** from the **design events**
 - For this purspose, SV introduces a separate block named "Program block"
 
-## SystemVerilog Stratified Event Queue
-
 # SystemVerilog Stratified Event Queue
-- Assertions can be written for DUT as well, they do not have any synthesizable equivalent hardware, the <> ignores it
+- Assertions can be written for DUT as well, they do not have any synthesizable equivalent hardware, the  ignores it
 - In Verilog hen both design and TB are at module level
 	- In active region, blocking assignment statements & display functions are evaluated
 	- In inactive region, #0 delay statements are executed
@@ -128,7 +132,11 @@ endmodule
 	- In observed region, all concurrent assertion statements that are sampled earlier are evaluated
 - In SystemVerilog, testbench is in program block so design module and testbench are not at same level, which lands in reactive region after observed region
 	- In Reactive region, blocking assignments and display functions in program block are evaluated
-	- In Re-inactive region, #0 `<copy>`
+	- In Re-inactive region, #0 delay statements are executed
+	- In Re-NBA region, Non-Blocking Assignment statements are evaluated
+	- In postponed region, `$monitor`, `$strobe` statements are executed
+- As a result, o racing occurs between DUT and Testbench in SystemVerilog
+
 - Simplified Diagram
 ```
 				From Previous
@@ -158,3 +166,4 @@ endmodule
 	- Observed: Evaluation on SystemVerilog assertions
 	- Reactive: Executiong of testbench code in programs
 	- Postponed: Sampling design signals for testbench input
+	
