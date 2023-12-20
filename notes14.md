@@ -121,6 +121,28 @@ endprogram
 - When y = 0, there is no constraint on x
 - However, implication is bidirectional; if y were forced to a non-zero value, x would have to be 1
 
+```verilog
+class BusOp;
+	rand bit [31:0] addr;
+	rand bit io_space_mode;
+	constraint c_io {
+		io_space_mode -> addr[31] == 1'b1;
+	}
+endclass
+```
+- The expression A -> B, when the implication operator appears in a constraint, the solver picks values for A and B so that expression is true
+- When A is true, B must be true, but when A is false, B can be true/false.
+- Note that this is a partly bidirectional constraint, but that A -> B does not imply B -> A
+- The two expressions produce different results
+
+| A -> B | B = false | B = true |
+|:-------:|:----:|:----:|
+| A = False | True | True |
+| A = True | False | True |
+
+- When A is true, B is also true
+- When A is false, B is true or false
+
 ## `solve ... before ...` statement
 ```verilog
 class A;
@@ -175,3 +197,36 @@ class A;
 		
 :warning: copy from slides T_T
 > examples 6.8, 6.9, 6.10
+
+## Bidirectional Constraints
+- Adding or removing a constraint on any one variable affects the value chosen for all variables that are related directly or indirectly
+- All are solved concurrently
+```verilog
+class Bidir;
+	rand bit [15:0] r, s, t;
+	constraint c_bidir {
+		r < t;
+		s == r;
+		t < 10;
+		s > 5;
+	}
+endclass
+```
+- All are solved in parallel
+|Solution|`r`|`s`|`t`|
+|:------:|:-:|:-:|:-:|
+| A | 6 | 6 | 7 |
+| B | 6 | 6 | 7 |
+| C | 6 | 6 | 7 |
+| D | 6 | 6 | 7 |
+| E | 6 | 6 | 7 |
+| F | 6 | 6 | 7 |
+
+## Equivalence Operator
+- The equivalence operator `<->` is bidirectional
+- AB is defined as `((A->B) && (B -> A))`
+
+| A <-> B | B = false | B = true |
+|:-------:|:----:|:----:|
+| A = False | True | False |
+| A = True | False | True |
