@@ -1076,7 +1076,7 @@ initial
 ### Driving Clocking Blocks
 - First, let us take our files:
 	- Top Module
-	```verilog
+```verilog
 module top;
 	bit clk;
 	always #5 clk = !clk;
@@ -1091,7 +1091,7 @@ module top;
 endmodule
 ```
 	- RTL Module
-	```verilog
+```verilog
 module dut(clk, inp1, inp2, outp1);
 	input clk;
 	parameter bit [15:0] WIDTH = 8;
@@ -1107,7 +1107,7 @@ module dut(clk, inp1, inp2, outp1);
 endmodule
 ```
 	- Test bench
-	```verilog
+```verilog
 program test(dut_if.tb vif);
 	initial begin
 		$display("Time: %0t", $time);
@@ -1123,7 +1123,7 @@ endprogram
 ```
 		- Here, we are making the driving statements as blocking assignments on purpose, to see what will happen
 	- Interface 
-	```verilog
+```verilog
 interface dut_if(input bit clk);
 	parameter bit [15:0] WIDTH=8;
 	logic [WIDTH-1:0] inp1, inp2, outp1;
