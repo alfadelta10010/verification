@@ -484,9 +484,14 @@ endinterface
 │  └─────────────┘           └──────────────┘  │
 └──────────────────────────────────────────────┘
 ```
+- It contains the connectivity, synchronisation and functionality of the communction between two+ blocks (optional) and error checking (optional)
+- Used to connect design blocks and/or testbenches
 - Arbiter: The arbiter is a mediator between different system components and system resources.
 - All the nets in the interface, by default, bidirectional (`inout`)
 - All variables in the interface, by default, are `ref` type
+- Interface blocks are to be decalred **outside** modules and program blocks
+- Some compilers may not support defining an interface inside a module, if allowed, the interface is a local interface which is not visible to the rest of the design
+
 - Taking a basic example for using interface as a port:
 ```verilog
 interface simple_bus;
@@ -502,7 +507,7 @@ module RTL (simple_bus intf, input logic clk);
 			intf.rdata <= mem[intf.addr];
 endmodule
 ```
-- The RTL and TB is pseudo-code btw
+- **Note:** The RTL and TB is pseudo-code btw
 ```
        ┌──┬─────────────┐      
  ──────│WR│    RTL      │      
@@ -569,6 +574,12 @@ module top;
 	test_with_ifc t1(arbif);
 endmodule : top
 ```
+#### Logic v/s Wire in an interface
+- If the testbench drives an async signal in an interface with procedural assignments, the signal must be of logic data type
+- A wrire can be driven by a continuous assignment statement **only**
+- Signals in a clocking block are synchronous and can be declared as logic or wire
+- The compiler can give an error if we unintentionally use multiple structural drivers, hence we use logic
+
 - We see that the structure is as follows:
 ```
 ┌──────────────────────────────────────────────────────┐
@@ -1212,3 +1223,135 @@ endprogram
 - We can do the same for the second `inp2` statement
 
 - All of this was for **driving** the data, the same can be applied for **sampling**
+
+### Sampling Clocking Blocks
+- First, let us take our files:
+
+	- Top Module
+	```verilog
+module top;
+	bit clk;
+	always #5 clk = !clk;
+	dut_if ifc(clk);
+	test test_inst(ifc);
+	dut dut_inst(
+		.clk(ifc.clk),
+		.inp1(ifc.inp1),
+		.inp2(ifc.inp2),
+		.outp1(ifc.outp1)
+	);
+endmodule
+```
+	- RTL Module
+	```verilog
+module dut(clk, inp1, inp2, outp1);
+	input clk;
+	parameter bit [15:0] WIDTH = 8;
+	input [WIDTH-1:0] inp1, inp2;
+	output [WIDTH-1:0] outp1;
+	reg [WIDTH-1:0] outp1;
+	bit [7:0] count;
+	always @(posedge clk)
+		begin
+			outp1 <= count;
+			count++;
+			$strobe("[Postponed] outp1: %0d @ time %0t", outp1, $time);
+		end
+endmodule
+```
+	- Test bench
+	```verilog
+program test(dut_if.tb vif);
+	initial begin
+		@(vif.cb); 
+		sig1 = vif.cb.outp1;
+		$display("[Re-active] Sampled outp1: %0d @ time %0t", sig1, $time);		
+	end
+endprogram
+```
+	- Interface 
+	```verilog
+interface dut_if(input bit clk);
+	parameter bit [15:0] WIDTH=8;
+	logic [WIDTH-1:0] inp1, inp2, outp1;
+	clocking cb @(posedge clk);
+		output inp1, inp2;
+		input outp1;
+	endclocking
+	modport tb(clocking cb);
+endinterface
+```
+- Checking time `#5` slot, `outp1` is initially `x`
+- When `outp1 <= count` executes, the updated value of `0` is stored during the Non-Blocking region
+- When we check `sig1` it is present in the Re-active region, and as a result, we must ask ourselves the questions again: We're in `#5` time, there is a clock edge available, and the next posedge is at `#15`
+- Whatever value was present in `#1` before current time slot in `outp1` right before execution of `sig1 = vif.cb.outp1`, that value will be stored in `sig1` 
+	- See: [Skews]() 
+- As a result, `sig1` is `x`
+- When it comes to sampling, it doesn't matter whether old or new data is collected, but we can use `#0` to collect the new value
+
+### Default Clocking Blocks
+- Clocking blocks can be specified as the default for all cycle delay operations
+```verilog
+program test(simple_bus.tb intf);
+	default clocking bus @(posedge intf.clk);
+	endclocking
+	
+	initial begin
+		##5; // Wait for 5 clock cycles
+		// repeat(5) @(posedge intf.clk)
+		if(intf.cb.data == 10)
+			##1; // Wait for one clock cycle
+		// @(posedge intf.clk);
+	end
+endprogram
+```
+- `#X`: Regular delay
+- `##X`: Clock cycle delay
+- If our clocking block is as follows:
+```verilog
+default clocking bus @(posedge clk);
+	output data;
+endclocking
+```
+### Synchronous Drives
+- We can write to `data` in the following ways:
+	- `bus.data[3:0] <= 4'h5`: Drive data to `0005` in Re-NBA region of current cycle 
+	- `##1; bus.data <= 8'hz`: Wait a clock cycle and then drive data to `zzzz_zzzz`
+	- `##2; bus.data <= 2`: Wait 2 clock cycles and then drive data to `0000_0010`
+	- `bus.data <= ##2 r`: Remember the value of `r` and then drive data to the value of `r` 2 clock cycles later (`##2 r` is called an intra-assignment delay)
+	- `bus.data <= #2 r`: Illegal, regular intra-assignment delays are not allowed
+
+### Skews
+```
+     Rising Edge
+       |
+       |
+    |  |──|─┐
+    |  |  | │
+   ─|──|  | └──
+    |     |
+    |     |
+    |     Signal
+ Signal   Driven
+Sampled
+```
+- If input skew is specified, signal is sampled at **skew time units** before the clock event
+- If output skew is specified, signal is driven at **skew time units** after the clock event
+- Default input skew: `#1`
+- Default output skew: `#0`
+- For example:
+```verilog
+clocking cb_mem @(posedge clk);
+	input #1ns rdata;
+	output #2ns wdata, addr, wr;
+endclocking
+``` 
+- **or**
+```verilog
+clocking cb_mem @(posedge clk);
+	default input #1ns output #2ns
+	input rdata;
+	output wdata, addr, wr;
+endclocking
+``` 
+- In both cases, there is `#1` input skew and `#2` output skew
