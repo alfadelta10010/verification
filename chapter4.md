@@ -203,6 +203,18 @@ endprogram
 - Program variables and nets are collectivaely termed **program signals**
 - Reference to program signals from outside any program block shall be an error.
 
+- The program block can read and write all signals in modules, and can call routines in modules, but a module has no visibility into a program.
+- This is because your testbench needs to see and control the design, but the design should not depend on anything in the testbench.
+
+#### Why no `always` blocks in a `program` block?
+- In a design, an always block might trigger on every positive edge of a clock from the start of simulation.
+- In contrast, a testbench has the steps of initialization, stimulate and respond to the design, and then wrap up simulation. An always block that runs continuously would not work.
+- When the last initial block completes in the program, simulation implicitly ends just as if you had executed $finish .
+- If you had an always block, it would run for ever, so you would have to explicitly call $exit to signal that the program completed.
+
+#### Top-level scope
+- Variables, routines, data types and parameters that are defined outside of any blocks are in the top-level scope
+
 ### What does a proper test bench look like?
 - There are three files
 	- `HA.sv` - Design file
@@ -464,6 +476,46 @@ endmodule
 - To solve this, enter `interface` block
 - Instead of using 100s of interconnects, we can group all the signals into a bus using the `interface` block
 
+## Assertions
+:warning: Add from photo
+### Immediate assertions
+- An immediate assertion checks if the expression is true when the statement is executed
+- The testbench can check the values of the design signals and testbench vatiables and take action if there is a problem
+- Assrertions result in actions, and there are four functions to print messages:
+	- `$info`: Assertion failure carries no specific severity
+	- `$warning`: Run-time warnings, can be supressed in tool-specific manner
+	- `$error`: Run-time errors
+	- `$fatal`: Run-time fatal error
+
+### Concurrent assertions
+- It is a small model that runs continuously, checking the values of signals for the entire simulation.
+-  These are instantiated similarly to other design blocks and are active for the entire simulation.
+- These check the sequence of events spread over multiple clock cycles
+- It is evaluated on clock ticks, hence sampling clock required
+- The test expression is evaluated at clock edges 
+- Can be placed in a procedural block, module, interface or program
+- For example:
+```verilog
+c_assert: assert property (@(posedge clk) not (a && b))
+```
+- The keyword is `property`
+
+#### Concurrent assertion to check for `x`/`z`
+```verilog
+interface arb_if(input bit clk);
+	logic [1:0] grant, request;
+	bit rst;
+	
+	property request_2state;
+		@(posedge clk) disable iff (rst)
+		$isunknown(request) == 0; // Make sure no z or x
+	endproperty
+	assert_request_2state: assert property(request_2state);
+endinterface
+```
+- Here, we don't want to procede with the check if some condition (`rst`) is true, which is why we use `disable iff()`
+- `$isunknown(expression)`: If any bit of the expression is `x` or `z` then it returns `true`
+
 ## Interface
 - Interface represents a bundle of nets or variables, with intelligence such as synchronization, and functional code.
 - An interface can be instantiated like a module but also connected to ports like a signal.
@@ -612,21 +664,16 @@ endinterface
 - The modport declaration only defines that the connected module sees input or output, bidirectional inout or ref port
 ```
        ┌──┬─────────────┐      
- ─────►│WR│    RTL      │      
-       ├──┘             │      
-       ├────┐           │      
+ ─────►│WR│     RTL     │      
+       ├──┴─┐           │      
  ─────►│ADDR│           │      
-       ├────┘           │      
-       ├─────┐   ┌──────┤      
+       ├────┴┐   ┌──────┤      
  ─────►│WDATA│   │ RDATA├───►
-       ├─────┘   └──────┤
-       ├──┐             │
+       ├──┬──┘   └──────┤
  ─────►│RD│             │
-       ├──┘             │
-       ├─────┐          │
+       ├──┴──┐          │
  ─────►│Reset│          │
-       ├─────┘          │
-       ├───┐            │
+       ├───┬─┘          │
  ─────►│Clk│            │
        └───┴────────────┘
 ```
@@ -1039,6 +1086,8 @@ clocking clocking_blk @(edge specifier);
 	<items>
 endclocking
 ```
+- Signals in a clocking block are driven or sampled synchronously, ensuring that your testbench interacts with the signals at the right time.
+
 - Chips communicate at cycle level, hence stimulus must be generated at cycle level
 - Clocking blocks are not synthesizable
 - Taking the memory model example, we need a clocking block to synchronise our signals:
@@ -1284,7 +1333,7 @@ endinterface
 - Checking time `#5` slot, `outp1` is initially `x`
 - When `outp1 <= count` executes, the updated value of `0` is stored during the Non-Blocking region
 - When we check `sig1` it is present in the Re-active region, and as a result, we must ask ourselves the questions again: We're in `#5` time, there is a clock edge available, and the next posedge is at `#15`
-- Whatever value was present in `#1` before current time slot in `outp1` right before execution of `sig1 = vif.cb.outp1`, that value will be stored in `sig1` 
+- Whatever value was present in `#1` before current time slot in `outp1` right before execution of `sig1 = vif.cb.outp1`, that value will be stored in `sig1` i.e., from the Postponed region.
 	- See: [Skews](chapter4.md#skews) 
 - As a result, `sig1` is `x`
 - When it comes to sampling, it doesn't matter whether old or new data is collected, but we can use `#0` to collect the new value
