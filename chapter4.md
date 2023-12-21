@@ -1167,7 +1167,7 @@ $display("Time: %0t", $time); 									// Testbench
 
 #### Cycle Level Operations
 ```
-	T5		T15		T25		T35
+	T5      T15     T25     T35
     |───┐   |───┐   ┌───┐   ┌───┐
     |   │   |   │   │   │   │   │ Clk
  ───|   └───|   └───┘   └───┘   └
