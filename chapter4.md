@@ -1285,7 +1285,7 @@ endinterface
 - When `outp1 <= count` executes, the updated value of `0` is stored during the Non-Blocking region
 - When we check `sig1` it is present in the Re-active region, and as a result, we must ask ourselves the questions again: We're in `#5` time, there is a clock edge available, and the next posedge is at `#15`
 - Whatever value was present in `#1` before current time slot in `outp1` right before execution of `sig1 = vif.cb.outp1`, that value will be stored in `sig1` 
-	- See: [Skews]() 
+	- See: [Skews](chapter4.md#skews) 
 - As a result, `sig1` is `x`
 - When it comes to sampling, it doesn't matter whether old or new data is collected, but we can use `#0` to collect the new value
 
