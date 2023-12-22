@@ -1,7 +1,35 @@
-# Functional coverage
-- `<points>`
+# Chapter 9: Functional coverage
+- User-defined metric that measures how much of the design specification, as enumerated by features in the test plan, has been exercised
 
-## Difference between Code and Functional Coverage
+- What is a test?
+	- A specific set of parameters for data & configuration
+	- Generating random test = randomizing stimuli, applying them to design, checking if it behaves as expected
+- What is Coverage?
+	- Coverage is a generic term for measuring progress to complete design verification
+- How is coverage done?
+	- The coverage tools gather information during a simulation and then postprocess it to produce a coverage report
+- Why do we need coverage?
+	- Coverage holes can be identified in the report and then existing tests can be modified or new tests can be created to fill the holes.
+
+## Types of coverage
+- Code coverage
+- Functional Coverage
+- Bug Rate
+- Assertion Coverage
+
+### Code coverage
+- Code coverage can measure:
+	1. Line coverage: How many lines of code have been executed
+	1. Path coverage: Which paths through the code expressions have been executed
+	1. Toggle coverage: Which single bit variables have had the values 0 or 1
+	1. FSM coverage: Which states and transitions in a state machine have been visted
+- In toggle coverage, we test the reset pin of the system, the system is reset in the start **and** at some point during execution
+
+### Functional coverage
+- Functional coverage is a measure of what functionalities/features of the design have been exercised by the tests.
+- This can be useful in constrained random verification (CRV) to know what features have been covered by a set of tests.
+
+### Difference between Code and Functional Coverage
 ```verilog
 module dff(clk, reset, d, q, q_bar);
 	input clk, reset, d;
@@ -22,9 +50,165 @@ endmodule
 - To measure functional coverage, we have to write additional testbench code to extract the functional coverage (cover group)
 - It checks if all the possible test vectors are applied on the design under test
 
+### Bug rate
+- An indirect way to measure coverage is to look at the rate at which fresh bugs are found
+- Every time the raye slows down, it is necessary to find different ways to create corner cases
+
+### Assertion Coverage
+- Assertions check relationships between design signals, either once or over a period of time 
+- Coded using the `assert` property
+- `cover property` statement can be used to look for interesting signal values or design states
+- How often the assertions are triggered during a test can be measured using assertion coverage
+
+### Feedback loop for coverage
+
+![Coverage Convergence](https://d3i71xaburhd42.cloudfront.net/3701a11207d9047d371ed13e881514bd145796c4/1-Figure1-1.png)
+
+- If the coverage levels are steadily growing -> you may just need to run existing tests with new random seeds, or even just run longer tests.
+- If the coverage growth has started to slow -> you can add additional constraints to generate more “interesting” stimuli.
+- When you reach a plateau -> some parts of the design are not being exercised, so you need to create more tests.
+-  Lastly, when your functional coverage values near 100%, check the bug rate.
+- If bugs are still being found, you may not be measuring true coverage for some areas of your design.
+
+
+### Gathering coverage data
+```
+┌───────────────┐                 ┌────────────┐
+│     Design    │                 │Verification│
+│ Specification ├─────────────────►    Plan    │
+└──────┬────────┘                 └─────┬──────┘
+       │                                │
+       │                                │
+   ┌───▼────┐     ┌──────────┐       ┌──▼──┐
+   │ Design ├─────► Coverage ◄───────┤Tests│
+   └───▲────┘     │ Database │       └──▲──┘
+       │          └────┬─────┘          │
+  Debug│               │                │Coverage
+       │   No       ┌───▼───┐   Yes     │Analysis
+       └────────────┤ Pass? ├───────────┘
+                    └───────┘
+```
+
+### Functional Coverage Strategies
+1. Gather Information, not Data
+	- The corner cases for a FIFO are Full and Empty
+	- If the transistion from Empty to Full and back to Empty is made, all the levels in between are covered
+	- Design signals with a large range should be broken down into smaller ranges, plus corner cases
+1. Only measure what you can use
+	- Gathering functional coverage data can be expensive, so only measure what is to be analysed and used to improve the tests
+1. Measuring Completeness
+	- All coverage measurements and the bug rate need to be checked ti see if the goal has been met
+
+### Coverage comparison
+```
+F     ┌─────────────────────┬─────────────────────┐
+u C  H│   Need more FC      │    Good coverage:   │
+n o  I│ points, including   │    Check bugrate    │
+c v  G│   corner cases      │                     │
+t e  H│                     │                     │
+i r   ├─────────────────────┼─────────────────────┤
+o a  L│      Start of       │ Is design complete? │
+n g  O│      Project        │  Perhaps try formal │
+a e  W│                     │       tools         │
+l     └─────────────────────┴─────────────────────┘
+                LOW                  HIGH
+                      Code Coverage
+```
+- The tests are not exercising the full design, perhaps from inadequate verification plan
+- The tests are unable to put the testbench in all its interesting states
+- The existing strategies have saturated and different approaches like new combinations of design blocks and error generators need to be tried
+
+### Simple functional coverage example
+```verilog
+program automatic test(busifc.TB ifc);
+	class Transaction;
+		rand bit [31:0] data;
+		rand bit [2:0] dst; // eight dst port numbers
+	endclass
+	
+	Transaction tr; // Transaction to be sampled
+	
+	covergroup CovDst2;
+		coverpoint tr.dst; // Measure coverage
+	endgroup
+	
+	initial begin
+		CovDst2 ck;
+		ck = new(); // Instantiate group
+		repeat (32) begin // Run a few cycles
+			@ifc.cb; // Wait a cycle
+			tr = new();
+			tr.randomize(); // Create a transaction
+			ifc.cb.dst <= tr.dst; // and transmit
+			ifc.cb.data <= tr.data; // onto interface
+			ck.sample();
+		end
+	end
+endprogram
+```
+- To improve your functional coverage, the easiest strategies are to run more simulation cycles, or to try new random seeds
+- Coverage reports:
+```
+Coverpoint Coverage report
+CoverageGroup: CovDst2
+    Coverpoint: tr.dst
+Summary
+	Coverage: 87.50
+	Goal: 100
+	Number of Expected auto-bins: 8
+	Number of User Defined Bins: 0
+	Number of Automatically Generated Bins: 7
+	Number of User Defined Transitions: 0
+	
+	Automatically Generated Bins
+	
+	Bin         # hits     at least
+	===============================
+	auto[1]     7          1
+	auto[2]     7          1
+	auto[3]     1          1
+	auto[4]     5          1
+	auto[5]     4          1
+	auto[6]     2          1
+	auto[7]     6          1
+	===============================
+```
+- When the coverage report mentions 100% coverage:
+```
+Coverpoint Coverage report
+CoverageGroup: CovDst2
+    Coverpoint: tr.dst
+Summary
+	Coverage: 100
+	Goal: 100
+	Number of Expected auto-bins: 8
+	Number of User Defined Bins: 0
+	Number of Automatically Generated Bins: 8
+	Number of User Defined Transitions: 0
+	
+	Automatically Generated Bins
+	
+	Bin         # hits     at least
+	===============================
+	auto[0]     1          1
+	auto[1]     7          1
+	auto[2]     7          1
+	auto[3]     1          1
+	auto[4]     5          1
+	auto[5]     4          1
+	auto[6]     2          1
+	auto[7]     6          1
+	===============================
+```
+- The at least column specifies how many hits are needed before a bin is considered covered
+
 ## Covergroup
 - The cover group construct is a user-defined type
 - The type definition is written once, and multiple instances of that type can be created in different contexts
+- A covergroup is similar to a class data-type, you need to create a handle and create an object
+- Similar to a class, once defined, a covergroup instance can be created via the `new()` operator
+- A covergroup can be defined in a package, module, program, interface, checker or class
+- It contains cover points, options, formal arguments and an optional trigger
 - Syntax:
 ```verilog
 covergroup cov_grp_name([coverage_event]);
@@ -33,6 +217,7 @@ covergroup cov_grp_name([coverage_event]);
 	cross coverpoint_name, coverpoint_name;
 endgroup
 ```
+- A bin is a counter, every time the value occurs, the count for the value increases
 - A coverpoint is the input of the design
 - We can make crosses of the coverpoints
 - For example:
@@ -45,15 +230,13 @@ endgroup
 ```
 for the following half adder:
 ```
-a--|    |-- s
-   | HA |
-b--|    |-- cout
+    ┌────┐
+A───►    ├──►Sum
+    │ HA │
+B───►    ├──►Cout
+    └────┘
 ```
 ### Simple example
-- A covergroup is similar to a class data-type, you need to create a handle and create an object
-- Similar to a class, once defined, a covergroup instance can be created via the `new()` operator
-- A covergroup can be defined in a package, module, program, interface, checker or class
-- A bin is a counter, every time the value occurs, the count for the value increases
 ```verilog
 enum {red, green, blue} color;
 covergroup my_fcov;
@@ -74,12 +257,15 @@ initial begin
 	cov_inst.sample(); // Reading the value of the bin, and incrementing (hitting) the red bin
 end
 ```
-- In the background, bins are automatically created
+- In the background, bins are **automatically created**
 ```
 auto_bin: red (0 -> 1 -> 2)
 auto_bin: blue (0 -> 1)
 auto_bin: green (0 -> 1)
 ```
+- System Verilog automatically creates bins for cover points. It looks at the domain of the sampled expression to determine the range of possible values.
+- For an expression that is N bits wide, there are 2 ^ N possible values. For the 3-bit variable `dst`, there are 8 possible values.
+
 - `instance.sample()` is a built in function, it hits (increments) the bin values of red blue and green
 - Usually, there's only one `sample` function call in the code
 - For this code, assuming we are only hitting `red` and `green` once, the coverage report is as follows:
@@ -155,13 +341,19 @@ program test;
 	bit [3:0] addr;
 	
 	covergroup cov;
-		option.auto_bin_max = 4; // Only 4 bins will be generated
+		option.auto_bin_max = 4; // Only 4 bins will be generated, for each coverpoint
 		coverpoint addr;
 	endgroup
 	
+	covergroup cov2;
+		coverpoint addr {
+			option.auto_bin_max = 4; // Only 4 bins will be generated for `addr`
+		}
+	endgroup
 	cov cov_inst = new;
 endprogram
 ```
+- The cover group option `auto_bin_max` specifies the maximum number of bins to automatically create, with a default of 64 bins.
 - However, the number of addresses possible are 16 `[3:0]`
 - Since the number of bins is lesser than the addresses possible, sharing occurs:
 ```
@@ -173,11 +365,14 @@ endprogram
 ```
 - What happens when single bin is allowed for multiple values? 
 - Sharing results in the not true functional coverage, all bins can be hit but all possible values aren't provided
+- The simulation achieved 100% coverage because the 16 values were mapped to 4 bins.
+- Since the four bins have sampled values, your coverage is 100%
 
 - If we take `bit[31:0] a` the possible values for a are 4294967296 (2^32) values, with 64 bins, each bin takes 67108864 different values.
 - We use user-defined bins for this reason
 
 - Covergroups are of two types, standalone and embedded
+
 ### Standalone covergroup
 ```verilog
 program test;
@@ -241,6 +436,7 @@ end
 - Taking handle for embedded covergroup is a compile error
 - :warning: Important 2/4-marker
 - When event is triggered, sampling occurs
+- In this case, we do not make a separate name when you construct it; just use the original cover group name
 
 > Reminder: `rand` and `randc` is needed only for `class.randomize` function
 
@@ -288,99 +484,37 @@ initial begin
 end
 ```
 
-# Code Coverage
-- What is Coverage?
-	- Coverage is a generic term for measuring progress to complete design verification
-- How is coverage done?
-	- The coverage tools 
-
-> <copy from chapter 9 ppts>	
-
-- Code coverage can measure:
-	1. Line coverage: How many lines of code have been executed
-	1. Path coverage: Which paths through the code expressions have been executed
-	1. Toggle coverage: Which single bit variables have had the values 0 or 1
-	1. FSM coverage: Which states and transitions in a state machine have been visted
-- In toggle coverage, we test the reset pin of the system, the system is reset in the start **and** at some point during execution
-
-#### Bug rate
-- An indirect way to measure coverage is to look at the rate at which fresh bugs are found
-- Every time the raye slows down, it is necessary to find different ways to create corner cases
-
-### Assertion Coverage
-- Assertions check relationships between design signals, either once or over a period of time 
-- Coded using the `assert` property
-- `cover property` statement can be used to look for interesting signal values or design states
-- How often the assertions are triggered during a test can be measured using assertion coverage
-
-#### Gathering coverage data
-```
-┌───────────────┐                 ┌────────────┐
-│     Design    │                 │Verification│
-│ Specification ├─────────────────►    Plan    │
-└──────┬────────┘                 └─────┬──────┘
-       │                                │
-       │                                │
-   ┌───▼────┐     ┌──────────┐       ┌──▼──┐
-   │ Design ├─────► Coverage ◄───────┤Tests│
-   └───▲────┘     │ Database │       └──▲──┘
-       │          └────┬─────┘          │
-  Debug│               │                │Coverage
-       │   No       ┌───▼───┐   Yes     │Analysis
-       └────────────┤ Pass? ├───────────┘
-                    └───────┘
-```
-### Functional Coverage Strategies
-1. Gather Information, not Data
-	- The corner cases for a FIFO are Full and Empty
-	- If the transistion from Empty to Full and back to Empty is made, all the levels in between are covered
-	- Design signals with a large range should be broken down into smaller ranges, plus corner cases
-1. Only measure what you can use
-	- Gathering functional coverage data can be expensive, so only measure what is to be analysed and used to improve the tests
-1. Measuring Completeness
-	- All coverage measurements and the bug rate need to be checked ti see if the goal has been met
-
-### Coverage comparison
-```
-F     ┌─────────────────────┬─────────────────────┐
-u C  H│   Need more FC      │    Good coverage:   │
-n o  I│ points, including   │    Check bugrate    │
-c v  G│   corner cases      │                     │
-t e  H│                     │                     │
-i r   ├─────────────────────┼─────────────────────┤
-o a  L│      Start of       │ Is design complete? │
-n g  O│      Project        │  Perhaps try formal │
-a e  W│                     │       tools         │
-l     └─────────────────────┴─────────────────────┘
-                LOW                  HIGH
-                      Code Coverage
-```
-- The tests are not exercising the full design, perhaps from inadequate verification plan
-- The tests are unable to put the testbench in all its interesting states
-- The existing strategies have saturated and different approaches like new combinations of design blocks and error generators need to be tried
-
-### Simple functional coverage example
+### User-defined Sample Argument list
 ```verilog
-program automatic test(busifc.TB ifc);
-	class Transaction;
-		rand bit [31:0] data;
-		rand bit [2:0] dst; // eight dst port numbers
-	endclass
-	
-	Transaction tr; // Transaction to be sampled
-	
-	covergroup CovDst2;
-		coverpoint tr.dst; // Measure coverage
-	endgroup
-endprogram
-```
-- Sample 9.2
-- To improve your functional coverage, the easiest strategies are to run more simulation cycles, or to try new random seeds
+covergroup CovDst8 with function sample(bit [2:0] dst, bit hs); // user defined argument list
+	coverpoint dst;
+	coverpoint hs;
+endgroup
 
-> copy from ppt bro too fast man is going
+class Transaction
+	CovDst8 covdst;
+	task run();
+		forever begin
+			mbx.get(tr);
+			ifc.cb.dst <= tr.dst;
+			ifc.cb.data <= tr.data;
+			covdst.sample(tr.st, high_speed); // gather coverage
+		end
+	endtask
+endclass
+```
+
 
 ## Bins
-#### User defined bins
+- When we specify a variable or expression in a cover point, SystemVerilog creates a number of “bins” to record how many times each value has been seen
+- These bins are the basic units of measurement for functional coverage
+
+- To calculate the coverage for a point, you first have to determine the total number of possible values, also known as the domain.
+- A cover point that is a 3-bit variable has the domain 0:7 and is normally divided into eight bins.
+- If, during simulation, values belonging to seven bins are sampled, the report will show 7/8 or 87.5% coverage for this point.
+- All these points are combined to show the coverage for the entire group, and then all the groups are combined to give a coverage percentage.
+
+### User defined bins
 ```verilog
 bit [3:0] addr, data, gvar;
 covergroup cov;
@@ -400,6 +534,9 @@ covergroup cov;
 		bins b1 = (3 [*5]); // same as 3 => 3 => 3 => 3 => 3 consecutive repetitions
 endgroup
 ```
+- We restrict the values used for coverage to those that are interesting to us by defining bins
+- The compiler no longer automatically creates bins, and it ignores values that do not fall into a predefined bin
+
 - The `bins` keyword is used to define bins, they all need a name
 - For example, whenever there is a `0` in the randomization, bin `zero` will be hit
 - Totally, 8 bins have been created
@@ -409,7 +546,7 @@ endgroup
 - Unnecessary address is generated
 - Coverage is a log report, the values generated aren't shown
 
-#### Wild card bins
+### Wild card bins
 ```verilog
 bit [1:0] data;
 covergroup cov;
@@ -425,7 +562,7 @@ endgroup
 - The count of bin trans is incremented for elow shown transistions:
 `00 -> 01, 00 -> 11, 10 -> 01, 10 -> 11`
 
-#### Ignore bins and Illegal bins
+### Ignore bins and Illegal bins
 ```verilog
 bit [3:0] data;
 covergroup cov;
@@ -498,14 +635,14 @@ endgroup
 ```
 - Totally for cross (9 x 4) 36 bins will be created
 
-#### User-defined cross bins
+### User-defined cross bins
 ```verilog
 int i, j;
 covergroup ct;
 	coverpoint i {bins i0 = {0}; bins i1 = {1};} // 2 bins 
 	coverpoint j {bins j0 = {0}; bins j1 = {1};} // 2 bins
 	x2: cross i, j {
-		bins i_zero = binsof(i) intersect {0}; // Generates bins for <i0, j0> and <i0, j1>
+		bins i_zero = binsof(i) intersect {0}; // Generates bin for <i0, j0> and <i0, j1>
 		// bins i_one = binsof(i) intersect {1}; // Generates bins for <i1, j0> and <i1, j1>	
 	}
 endgroup
@@ -555,3 +692,22 @@ c2 = (a2, b1) (a2, b2) (a2, b3) (a2, b4) (a1, b2) (a3, b2) (a4, b2)
 (a4, b4) 
 ```
 - Totally, 17 bins are created
+
+### Exculding coverpoints from total coverage
+- For sampling a variable or expression in a coverpoint to be used in a cross statement, we should set its weight to 0 so that it does not contribute to the total coverage
+```verilog
+covergroup CovDst35;
+	kind: coverpoint kind {
+		bins zero = {0};
+		bins lo = {[1:3]};
+		bins hi[] = {[8:$]};
+		type_option.weight = 5; // Count in total
+	}
+	dst: coverpoint dst {
+		bins dst[] = {[0:$]};
+		type_option.weight = 0; // Do not count in total
+	}
+	cross kind, dst {
+		type_option.weight = 10; // Give extra weight to cross
+	}
+endgroup
