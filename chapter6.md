@@ -923,11 +923,11 @@ endclass
 Packet p;
 initial begin
 	p = new();
-	`SV_RAND_CHECK(p.randomize()); // Randomize all variables
+	p.randomize();         // Randomize all variables
 	p.display("Simple randomize");
 	p.length.rand_mode(0); // Disable random-ness of length,
 	p.length = 42;         // and set it to a constant value
-	`SV_RAND_CHECK(p.randomize()); // and randomize the payload
+	p.randomize();         // and randomize the payload
 	p.display("Randomize with rand_mode");
 end
 ```
